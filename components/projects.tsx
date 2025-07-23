@@ -1,58 +1,107 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Github, ExternalLink } from "lucide-react"
+import { Github, ExternalLink, Loader2 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
-const projects = [
-  {
-    title: "Visual Search Engine using VLMs",
-    description:
-      "An AI-powered visual search engine that retrieves relevant images using natural language or image input. Built with Vision-Language Models and features a user-friendly Streamlit interface for seamless interaction.",
-    image: "/placeholder.svg?height=200&width=300",
-    github: "https://github.com/Yadavji5739v/Visual_Sesrch_Engine_using_VLMs",
-    live: null,
-    tags: ["Python", "Vision-Language Models", "Streamlit", "AI", "Computer Vision"],
-  },
-  {
-    title: "Cryptocurrency Liquidity Prediction",
-    description:
-      "Advanced machine learning project that predicts cryptocurrency liquidity using historical market data. Supports market stability through intelligent forecasting by modeling and anticipating shifts in liquidity patterns.",
-    image: "/placeholder.svg?height=200&width=300",
-    github: "https://github.com/Yadavji5739v/Cryptocurrency-liquidity-Prediction",
-    live: null,
-    tags: ["Jupyter Notebook", "Machine Learning", "Cryptocurrency", "Data Analysis", "Forecasting"],
-  },
-  {
-    title: "AI-Powered Stock Analysis",
-    description:
-      "Machine learning model that analyzes stock market trends and provides investment insights. Features technical indicators, sentiment analysis, and predictive modeling for informed trading decisions.",
-    image: "/placeholder.svg?height=200&width=300",
-    github: "https://github.com/Yadavji5739v",
-    live: null,
-    tags: ["Python", "Pandas", "Scikit-learn", "Financial Analysis", "ML"],
-  },
-  {
-    title: "Natural Language Processing Suite",
-    description:
-      "Comprehensive NLP toolkit featuring text classification, sentiment analysis, and language generation capabilities. Built with modern transformer models and deployed with an intuitive web interface.",
-    image: "/placeholder.svg?height=200&width=300",
-    github: "https://github.com/Yadavji5739v",
-    live: null,
-    tags: ["Python", "NLP", "Transformers", "BERT", "Text Analysis"],
-  },
-  {
-    title: "Deep Learning Image Classifier",
-    description:
-      "Convolutional Neural Network for image classification with high accuracy. Features data augmentation, transfer learning, and real-time prediction capabilities through a web-based interface.",
-    image: "/placeholder.svg?height=200&width=300",
-    github: "https://github.com/Yadavji5739v",
-    live: null,
-    tags: ["Python", "TensorFlow", "CNN", "Deep Learning", "Computer Vision"],
-  },
-]
+interface Project {
+  title: string
+  description: string
+  image: string
+  github: string
+  live: string | null
+  tags: string[]
+}
+
+interface ProjectsData {
+  projects: Project[]
+}
 
 export default function Projects() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true)
+
+        // Try to fetch from GitHub raw URL first
+        const githubUrl = "https://raw.githubusercontent.com/Yadavji5739v/portfolio-data/main/projects.json"
+
+        let response
+        try {
+          response = await fetch(githubUrl)
+          if (!response.ok) {
+            throw new Error("GitHub fetch failed")
+          }
+        } catch (githubError) {
+          // Fallback to local JSON file
+          console.log("Fetching from GitHub failed, using local file")
+          response = await fetch("/projects.json")
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data: ProjectsData = await response.json()
+        setProjects(data.projects)
+      } catch (err) {
+        console.error("Error fetching projects:", err)
+        setError("Failed to load projects. Please try again later.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProjects()
+  }, [])
+
+  if (loading) {
+    return (
+      <section id="projects" className="py-20 px-4 bg-white dark:bg-slate-900">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-800 dark:text-white mb-4">My Projects</h2>
+            <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+              Here are some of the projects I've worked on, showcasing my skills in AI, ML, and web development
+            </p>
+          </div>
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            <span className="ml-2 text-slate-600 dark:text-slate-300">Loading projects...</span>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section id="projects" className="py-20 px-4 bg-white dark:bg-slate-900">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-800 dark:text-white mb-4">My Projects</h2>
+            <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+              Here are some of the projects I've worked on, showcasing my skills in AI, ML, and web development
+            </p>
+          </div>
+          <div className="text-center py-20">
+            <p className="text-red-500 dark:text-red-400">{error}</p>
+            <Button onClick={() => window.location.reload()} className="mt-4 bg-blue-600 hover:bg-blue-700">
+              Retry
+            </Button>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section id="projects" className="py-20 px-4 bg-white dark:bg-slate-900">
       <div className="max-w-6xl mx-auto">
