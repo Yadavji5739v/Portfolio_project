@@ -3,24 +3,16 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Github, ExternalLink, Loader2 } from "lucide-react"
-import Image from "next/image"
+import { ExternalLink, Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 
 interface Project {
   title: string
   description: string
-  image: string
-  github: string
-  live: string | null
-  tags: string[]
+  link: string
 }
 
-interface ProjectsData {
-  projects: Project[]
-}
-
-export default function Projects() {
+export default function ProjectsFetcher() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -29,31 +21,34 @@ export default function Projects() {
     const fetchProjects = async () => {
       try {
         setLoading(true)
+        setError(null)
 
-        // Try to fetch from GitHub raw URL first
-        const githubUrl = "https://raw.githubusercontent.com/Yadavji5739v/portfolio-data/main/projects.json"
-
-        let response
-        try {
-          response = await fetch(githubUrl)
-          if (!response.ok) {
-            throw new Error("GitHub fetch failed")
-          }
-        } catch (githubError) {
-          // Fallback to local JSON file
-          console.log("Fetching from GitHub failed, using local file")
-          response = await fetch("/projects.json")
-        }
+        const response = await fetch(
+          "https://raw.githubusercontent.com/Yadavji5739v/Portfolio_project/main/public/data.json",
+        )
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+          throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`)
         }
 
-        const data: ProjectsData = await response.json()
-        setProjects(data.projects)
+        const data: Project[] = await response.json()
+
+        // Validate data structure
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid data format: Expected an array of projects")
+        }
+
+        // Validate each project has required fields
+        const validProjects = data.filter((project) => project.title && project.description && project.link)
+
+        if (validProjects.length === 0) {
+          throw new Error("No valid projects found in the data")
+        }
+
+        setProjects(validProjects)
       } catch (err) {
         console.error("Error fetching projects:", err)
-        setError("Failed to load projects. Please try again later.")
+        setError(err instanceof Error ? err.message : "An unexpected error occurred")
       } finally {
         setLoading(false)
       }
@@ -62,105 +57,129 @@ export default function Projects() {
     fetchProjects()
   }, [])
 
+  // Loading state
   if (loading) {
     return (
-      <section id="projects" className="py-20 px-4 bg-white dark:bg-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 py-12 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-800 dark:text-white mb-4">My Projects</h2>
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4">My Projects</h1>
             <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-              Here are some of the projects I've worked on, showcasing my skills in AI, ML, and web development
+              Fetching my latest projects from GitHub...
             </p>
           </div>
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <span className="ml-2 text-slate-600 dark:text-slate-300">Loading projects...</span>
+
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-600 mb-4" />
+            <p className="text-slate-600 dark:text-slate-300 text-lg">Loading projects...</p>
           </div>
         </div>
-      </section>
+      </div>
     )
   }
 
+  // Error state
   if (error) {
     return (
-      <section id="projects" className="py-20 px-4 bg-white dark:bg-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 py-12 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-800 dark:text-white mb-4">My Projects</h2>
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-slate-800 dark:text-white mb-4">My Projects</h1>
             <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-              Here are some of the projects I've worked on, showcasing my skills in AI, ML, and web development
+              Something went wrong while loading projects
             </p>
           </div>
-          <div className="text-center py-20">
-            <p className="text-red-500 dark:text-red-400">{error}</p>
-            <Button onClick={() => window.location.reload()} className="mt-4 bg-blue-600 hover:bg-blue-700">
-              Retry
-            </Button>
+
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 max-w-md mx-auto">
+              <div className="flex items-center mb-4">
+                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400 mr-2" />
+                <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">Error Loading Projects</h3>
+              </div>
+              <p className="text-red-700 dark:text-red-300 mb-4">{error}</p>
+              <Button
+                onClick={() => window.location.reload()}
+                className="w-full bg-red-600 hover:bg-red-700 text-white"
+              >
+                Try Again
+              </Button>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
     )
   }
 
+  // Success state - display projects
   return (
-    <section id="projects" className="py-20 px-4 bg-white dark:bg-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 py-12 px-4">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-slate-800 dark:text-white mb-4">My Projects</h2>
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            My Projects
+          </h1>
           <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Here are some of the projects I've worked on, showcasing my skills in AI, ML, and web development
+            Here are some of the projects I've been working on. Each one represents a unique challenge and learning
+            experience.
           </p>
+          <div className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+            Showing {projects.length} project{projects.length !== 1 ? "s" : ""}
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Projects Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {projects.map((project, index) => (
-            <Card key={index} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
-              <div className="relative h-48 overflow-hidden">
-                <Image
-                  src={project.image || "/placeholder.svg"}
-                  alt={project.title}
-                  fill
-                  className="object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <CardHeader>
-                <CardTitle className="text-xl text-slate-800 dark:text-white">{project.title}</CardTitle>
+            <Card
+              key={index}
+              className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-slate-200 dark:border-slate-700"
+            >
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                  {project.title}
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-slate-600 dark:text-slate-300 mb-4 line-clamp-3">{project.description}</p>
 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tags.map((tag, tagIndex) => (
-                    <span
-                      key={tagIndex}
-                      className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+              <CardContent className="pt-0">
+                <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed line-clamp-4">
+                  {project.description}
+                </p>
 
-                <div className="flex gap-2">
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={project.github}>
-                      <Github size={16} className="mr-2" />
-                      Code
-                    </Link>
-                  </Button>
-                  {project.live && (
-                    <Button asChild size="sm">
-                      <Link href={project.live}>
-                        <ExternalLink size={16} className="mr-2" />
-                        Live Demo
-                      </Link>
-                    </Button>
-                  )}
-                </div>
+                <Button
+                  asChild
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors group-hover:bg-blue-700"
+                >
+                  <Link
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center"
+                  >
+                    <ExternalLink size={16} className="mr-2" />
+                    View Project
+                  </Link>
+                </Button>
               </CardContent>
             </Card>
           ))}
         </div>
+
+        {/* Footer */}
+        <div className="text-center mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
+            Data fetched from{" "}
+            <Link
+              href="https://github.com/Yadavji5739v/Portfolio_project"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              GitHub Repository
+            </Link>
+          </p>
+        </div>
       </div>
-    </section>
+    </div>
   )
 }
