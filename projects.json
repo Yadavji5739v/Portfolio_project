@@ -24,14 +24,7 @@
       "live": null,
       "tags": ["Python", "Pandas", "Scikit-learn", "Financial Analysis", "ML"]
     },
-    // {
-    //   "title": "Natural Language Processing Suite",
-    //   "description": "Comprehensive NLP toolkit featuring text classification, sentiment analysis, and language generation capabilities. Built with modern transformer models and deployed with an intuitive web interface.",
-    //   "image": "/placeholder.svg?height=200&width=300",
-    //   "github": "https://github.com/Yadavji5739v",
-    //   "live": null,
-    //   "tags": ["Python", "NLP", "Transformers", "BERT", "Text Analysis"]
-    // },
+
     {
       "title": "Deep Learning Image Classifier",
       "description": "Convolutional Neural Network for image classification with high accuracy. Features data augmentation, transfer learning, and real-time prediction capabilities through a web-based interface.",
