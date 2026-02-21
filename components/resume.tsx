@@ -32,39 +32,27 @@ export default function Resume() {
             </div>
 
             {/* Buttons */}
-            <div className="space-y-3">              
+            <div className="space-y-3">
+              <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" download>
                 <Button
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   size="lg"
-                  onClick={() =>
-                    window.open(
-                      "https://drive.google.com/uc?export=download&id=11RTXvvJLfUJ_y0jbGxbkxsWX1lQxW11Y",
-                      "_blank"
-                    )
-                  }
                 >
-            
                   <Download className="mr-2" size={20} />
                   Download Resume (PDF)
                 </Button>
-                
-              <Button
-                variant="outline"
-                className="w-full bg-transparent"
-                size="lg"
-                onClick={() =>
-                  window.open(
-                    "https://drive.google.com/file/d/11RTXvvJLfUJ_y0jbGxbkxsWX1lQxW11Y/view?usp=sharing",
-                    "_blank"
-                  )
-                }
+              </a>
+
+              <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  size="lg"
                 >
-                  
                   <FileText className="mr-2" size={20} />
                   View Online
-                
-              </Button>
-
+                </Button>
+              </a>
             </div>
 
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-4">
