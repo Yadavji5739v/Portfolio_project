@@ -4,6 +4,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Download, FileText } from "lucide-react"
 
 export default function Resume() {
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = "/resume.pdf";
+    link.setAttribute("download", "resume.pdf");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const handleView = () => {
+    window.open("/resume.pdf", "_blank", "noopener,noreferrer");
+  };
   return (
     <section id="resume" className="py-20 px-4 bg-white dark:bg-slate-900">
       <div className="max-w-4xl mx-auto text-center">
@@ -33,26 +45,24 @@ export default function Resume() {
 
             {/* Buttons */}
             <div className="space-y-3">
-              <a href="/resume.pdf" target="_blank" rel="noopener noreferrer" download>
-                <Button
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                  size="lg"
-                >
-                  <Download className="mr-2" size={20} />
-                  Download Resume (PDF)
-                </Button>
-              </a>
+              <Button
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                size="lg"
+                onClick={handleDownload}
+              >
+                <Download className="mr-2" size={20} />
+                Download Resume (PDF)
+              </Button>
 
-              <a href="/resume.pdf" target="_blank" rel="noopener noreferrer">
-                <Button
-                  variant="outline"
-                  className="w-full bg-transparent"
-                  size="lg"
-                >
-                  <FileText className="mr-2" size={20} />
-                  View Online
-                </Button>
-              </a>
+              <Button
+                variant="outline"
+                className="w-full bg-transparent"
+                size="lg"
+                onClick={handleView}
+              >
+                <FileText className="mr-2" size={20} />
+                View Online
+              </Button>
             </div>
 
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-4">
